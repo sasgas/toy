@@ -12,6 +12,7 @@
 #include <boost/version.hpp>
 
 #include "listener.h"
+#include "type.h"
 
 namespace po = boost::program_options;
 namespace sys = boost::system;
@@ -24,10 +25,8 @@ using traced = boost::error_info<struct tag_stacktrace, strace::stacktrace>;
 using tcp = boost::asio::ip::tcp;
 
 int main(int argc, char *argv[]) {
-  asio::io_context ioc{static_cast<int>(std::thread::hardware_concurrency())};
-  std::vector<std::thread> v;
-
-  ServiceListener sl(ioc.get_executor());
+  std::size_t acceptor_cnt = std::thread::hardware_concurrency() * 2;
+  ServiceListener sl(acceptor_cnt, asio::make_strand(asio::system_executor{}));
 
   sys::error_code ec;
   sl.Start(ec);
@@ -37,18 +36,19 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  for (auto i = std::thread::hardware_concurrency() - 1; i > 0; --i) {
-    v.emplace_back([&ioc] {
-      // CILOG(debug, "ioc is running on tid[{}]", syscall(SYS_gettid));
-      ioc.run();
-    });
-  }
+  asio::signal_set signals(asio::system_executor{}, SIGINT, SIGTERM);
+  signals.async_wait([&](const sys::error_code& err, int signal) {
+    if (err) {
+      std::cerr << err.message() << "\n";
+    }
+    if (signal) {
+      std::cerr << "signal = " << strsignal(signal) << "\n";
 
-  // CILOG(debug, "ioc is running on tid[{}]", syscall(SYS_gettid));
-  ioc.run();
+      asio::system_executor{}.context().stop();
+    }
+  });
 
-  for (auto& th : v) th.join();
-  v.clear();
+  asio::query(asio::system_executor{}, asio::execution::context).join();
 
   return EXIT_SUCCESS;
 }

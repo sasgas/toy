@@ -21,5 +21,11 @@ add_compile_options(-DURDL_HEADER_ONLY)
 add_compile_options(-Wall)
 
 add_subdirectory(submodules)
-add_subdirectory(src/cpp20)
-add_subdirectory(src/cpp17)
+
+add_subdirectory(src/spawn_anyexc)
+add_subdirectory(src/spawn_iocexc)
+add_subdirectory(src/spawn_sysexc)
+
+add_subdirectory(src/cospawn_anyexc)
+add_subdirectory(src/cospawn_iocexc)
+add_subdirectory(src/cospawn_sysexc)

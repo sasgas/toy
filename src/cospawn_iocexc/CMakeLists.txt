@@ -11,11 +11,11 @@ set(SRCS
   session.cpp
 )
 
-add_executable(cpp20 ${SRCS})
+add_executable(cospawn_iocexc ${SRCS})
 
-target_compile_options(cpp20 ${TCMALLOC_COMPILE_OPTIONS})
-target_compile_options(cpp20 PUBLIC -fcoroutines)
-target_link_libraries(cpp20
+target_compile_options(cospawn_iocexc ${TCMALLOC_COMPILE_OPTIONS})
+target_compile_options(cospawn_iocexc PUBLIC -fcoroutines)
+target_link_libraries(cospawn_iocexc
   fmt::fmt
   ${Boost_LIBRARIES}
   stdc++fs

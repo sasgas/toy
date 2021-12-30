@@ -11,11 +11,11 @@ set(SRCS
   session.cpp
 )
 
-add_executable(cpp17 ${SRCS})
+add_executable(cospawn_anyexc ${SRCS})
 
-target_compile_options(cpp17 ${TCMALLOC_COMPILE_OPTIONS})
-target_compile_options(cpp17 PUBLIC -fcoroutines)
-target_link_libraries(cpp17
+target_compile_options(cospawn_anyexc ${TCMALLOC_COMPILE_OPTIONS})
+target_compile_options(cospawn_anyexc PUBLIC -fcoroutines)
+target_link_libraries(cospawn_anyexc
   fmt::fmt
   ${Boost_LIBRARIES}
   stdc++fs

@@ -18,19 +18,18 @@ namespace beast = boost::beast;
 using tcp = boost::asio::ip::tcp;
 
 struct ServiceListener::AcceptorInfo {
-  AcceptorInfo(asio::any_io_executor exc)
-      : strand_(exc), acceptor_(std::make_shared<tcp::acceptor>(strand_)) {}
+  AcceptorInfo(executor_type exc)
+      : strand_(exc), acceptor_(std::make_shared<tcp_acceptor_type>(strand_)) {}
 
-  asio::strand<asio::any_io_executor> strand_;
-  std::shared_ptr<tcp::acceptor> acceptor_;
+  executor_type strand_;
+  std::shared_ptr<tcp_acceptor_type> acceptor_;
 };
-
-ServiceListener::ServiceListener(asio::any_io_executor exc) : exc_(exc) {}
 
 void ServiceListener::Listen(boost::system::error_code& ec) {
   tcp::endpoint listen_ep(asio::ip::address::from_string("0.0.0.0"), 18080);
-  for (auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
-    auto ai = std::make_shared<AcceptorInfo>(exc_);
+  for (auto i = 0u; i < thread_count_; ++i) {
+    auto ai = std::make_shared<AcceptorInfo>(
+        asio::make_strand(exc_.get_inner_executor()));
 
     // Open the acceptor
     ai->acceptor_->open(listen_ep.protocol(), ec);
@@ -118,8 +117,8 @@ boost::asio::awaitable<void> ServiceListener::RunTCP(const AcceptorInfo& ai) {
 
   sys::error_code ec;
   while (stop_ == false) {
-    auto stream = std::make_shared<beast::tcp_stream>(
-        asio::make_strand(ai.acceptor_->get_executor()));
+    auto stream = std::make_shared<tcp_stream_type>(
+        asio::make_strand(ai.acceptor_->get_executor().get_inner_executor()));
     ec.clear();
     co_await ai.acceptor_->async_accept(
         stream->socket(), asio::redirect_error(asio::use_awaitable, ec));
