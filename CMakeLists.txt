@@ -3,7 +3,7 @@ project (toy)
 
 message(STATUS "Boost_DIR=$ENV{Boost_DIR}")
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.77 REQUIRED COMPONENTS coroutine)
+find_package(Boost 1.78 REQUIRED COMPONENTS coroutine)
 
 set(CMAKE_CXX_STANDARD 20)
 
